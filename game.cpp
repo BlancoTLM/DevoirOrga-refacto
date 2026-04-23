@@ -1,4 +1,15 @@
-// TODO: clean this up later
+/* Utilité du programme
+Il s'agit d'un jeu avec des inputs, un oiseau qui se déplace et des pipes qui sont spawnés, j'en déduit que c'est un clone de FlappyBird ou un jeu similaire
+*/
+
+/* Code Smells, Anti-Patterns et Défauts
+- Les conventions de nommages sont illisibles, utilisation de lettres et de chiffres au lieux de noms complets qui éclairent sur l'usage.
+- Ce jeu fonctionne avec une GodFunction dans un GodScript. Vu la taille ce n'est pas tres grave que ce soit sur un seul script mais la GodFunction rends le tout illisible.
+- Il y a de nombreuses valeurs hardcodées (Magic numbers) alors qu'il serait plus pertinent de les exposer et de leur donner un nom qui éclaire sur leur signification.
+- Les commentaires décrivent ce que fait le code de maniere simpliste mais ne donnent aucune information pertinente sur le fonctionnement.
+- Il y a des debugs d'erreurs identiques, préférer ajouter un prefix pour signifier quelle partie est en cause ainsi qu'une description le plus détaillées possible de l'erreur pour remonter a sa source.
+- Indentations étranges et incohérentes parfois, mais qui se reglent tres facilement avec un formatage automatique.
+*/
 
 #include <windows.h>
 #include <iostream>
