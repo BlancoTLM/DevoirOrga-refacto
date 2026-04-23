@@ -13,6 +13,8 @@ Il s'agit d'un jeu avec des inputs, un oiseau qui se déplace et des pipes qui s
 - Indentations étranges et incohérentes parfois, mais qui se reglent tres facilement avec un formatage automatique.
 */
 
+/// Avec plus de temps j'aurai mieux séparé les méthode pour que main soit le plus court et le plus simple possible
+
 #include <windows.h>
 #include <iostream>
 #include <vector>
@@ -24,9 +26,48 @@ Il s'agit d'un jeu avec des inputs, un oiseau qui se déplace et des pipes qui s
 #include <cmath>
 #include <fstream>
 
+bool setupGame(HANDLE input, HANDLE output, DWORD originalInputMode)
+{
+    HANDLE handleInput  = GetStdHandle(STD_INPUT_HANDLE);
+    HANDLE handleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (handleInput == INVALID_HANDLE_VALUE)
+    {
+        std::cerr << "error"  << std::endl; return false;
+    }
+    if (handleOutput == INVALID_HANDLE_VALUE)
+    {
+        std::cerr << "error" << std::endl; return false;
+    }
+
+    DWORD mode  = 0;
+    DWORD mode2 = 0;
+    DWORD mode3 = 0;
+    if (!GetConsoleMode(handleInput, &mode))
+    {
+        std::cerr << "error" << std::endl; return false;
+    }
+    mode2 = mode;
+    mode2 &= ~ENABLE_LINE_INPUT;
+    mode2 &= ~ENABLE_ECHO_INPUT;
+    if (!SetConsoleMode(handleInput, mode2))
+    {
+        std::cerr << "error" << std::endl; return false;
+    }
+    if (GetConsoleMode(handleOutput, &mode3))
+    {
+        SetConsoleMode(handleOutput, mode3 | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
+    return true;
+}
+
 int main()
 {
     #pragma region Variables
+    
+    // *** settings ***
+    std::string bestScoreFileName = "best-score.txt";
+
+    // private data
 
     struct Bird
     {
@@ -46,58 +87,36 @@ int main()
         int pipeGapTop;
         bool pipeScoredFlag;
     };
-    
-    // accessible settings
-    std::string bestScoreFileName = "best-score.txt";
 
-    // data stored
     std::vector<Pipe> pipesArray;
     Bird bird;
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_int_distribution<int> gapPosition(2, 20 - 6 - 2);
 
-    #pragma endregion
-
-
-    HANDLE handleInput  = GetStdHandle(STD_INPUT_HANDLE);
-    HANDLE handleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (handleInput == INVALID_HANDLE_VALUE)
-    {
-        std::cerr << "error"  << std::endl; return 1;
-    }
-    if (handleOutput == INVALID_HANDLE_VALUE)
-    {
-        std::cerr << "error" << std::endl; return 1;
-    }
-
-    DWORD mode  = 0;
-    DWORD mode2 = 0;
-    DWORD mode3 = 0;
-    if (!GetConsoleMode(handleInput, &mode))
-    {
-        std::cerr << "error" << std::endl; return 1;
-    }
-    mode2 = mode;
-    mode2 &= ~ENABLE_LINE_INPUT;
-    mode2 &= ~ENABLE_ECHO_INPUT;
-    if (!SetConsoleMode(handleInput, mode2))
-    {
-        std::cerr << "error" << std::endl; return 1;
-    }
-    if (GetConsoleMode(handleOutput, &mode3))
-    {
-        SetConsoleMode(handleOutput, mode3 | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-    }
-
+    // Score
     unsigned long long currentScore  = 0;
     unsigned long long bestScore = 0;
 
+    // Setup
+    HANDLE handleInput  = GetStdHandle(STD_INPUT_HANDLE);
+    HANDLE handleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD mode  = 0;
+    DWORD mode2 = 0;
+    DWORD mode3 = 0;
+
+    //UI
     int leftHudPadding = 0;
     int rightHudPadding = 0;
 
-    std::mt19937 rng(std::random_device{}());
-    std::uniform_int_distribution<int> gapPosition(2, 20 - 6 - 2);
-  
     INPUT_RECORD inputRecord;
     DWORD ne = 0;
+
+    #pragma endregion
+
+    if (!setupGame(handleInput, handleOutput, mode))
+    {
+        return 1;
+    }
   
     std::ifstream bestScoreFile(bestScoreFileName);
     if (bestScoreFile)
@@ -175,6 +194,7 @@ int main()
                     bestScore = currentScore;
                 }
             }
+        }
   
         for (int i = (int)pipesArray.size() - 1; i >= 0; i--)
         {
@@ -222,10 +242,13 @@ int main()
         for (int i = 0; i < (int)pipesArray.size(); i++)
         {
             int pipePositionXFloored = (int)std::floor(pipesArray[i].pipePositionsX);
-            for (int i = 0; i < 6; i++)
+            for (int dx = 0; dx < 6; dx++)
             {
                 int x = pipePositionXFloored + i;
-                if (x < 0 || x >= 50) continue;
+                if (x < 0 || x >= 50)
+                {
+                    continue;
+                }
                 for (int y = 0; y < 20; y++)
                 {
                     if (!(y >= pipesArray[i].pipeGapTop && y < pipesArray[i].pipeGapTop + 6))
