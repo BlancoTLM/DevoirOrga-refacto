@@ -1,3 +1,5 @@
+/// Je code en C# moi normalement T^T
+
 /* Utilité du programme
 Il s'agit d'un jeu avec des inputs, un oiseau qui se déplace et des pipes qui sont spawnés, j'en déduit que c'est un clone de FlappyBird ou un jeu similaire
 */
